@@ -1,0 +1,12 @@
+.DS_Store
+build/
+cmake-build-*/
+out/
+.vs/
+*.user
+*.log
+*.tmp
+*.mka
+*.mp4
+*.png
+icecale-work*/
