@@ -99,17 +99,18 @@ bool isExecutable(const fs::path& p) {
 fs::path findTool(const fs::path& baseDir, const std::string& name) {
     std::vector<fs::path> candidates;
 
-    auto maybeAdd = [&](const fs::path& p) {
-        candidates.push_back(p);
+    auto addForRoot = [&](const fs::path& root) {
+        const std::string exeSuffix = isWindows() ? ".exe" : "";
+        candidates.push_back(root / (name + exeSuffix));
+        candidates.push_back(root / "bin" / (name + exeSuffix));
+        candidates.push_back(root / "third_party" / name / (name + exeSuffix));
+        candidates.push_back(root / "third_party" / "bin" / (name + exeSuffix));
     };
 
-    const std::string exeSuffix = isWindows() ? ".exe" : "";
-
-    // Local project structure candidates: same dir as executable, bin/, third_party/...
-    maybeAdd(baseDir / (name + exeSuffix));
-    maybeAdd(baseDir / "bin" / (name + exeSuffix));
-    maybeAdd(baseDir / "third_party" / name / (name + exeSuffix));
-    maybeAdd(baseDir / "third_party" / "bin" / (name + exeSuffix));
+    // Cover common Visual Studio out/build/<arch>-<config>/ layout by climbing up.
+    addForRoot(baseDir);
+    addForRoot(baseDir.parent_path());
+    addForRoot(baseDir.parent_path().parent_path());
 
     for (const auto& candidate : candidates) {
         if (isExecutable(candidate)) {
@@ -117,7 +118,12 @@ fs::path findTool(const fs::path& baseDir, const std::string& name) {
         }
     }
 
-    throw std::runtime_error("Required tool not found in project folders: " + name);
+    std::ostringstream message;
+    message << "Required tool not found in project folders: " << name << "\nSearched under:\n";
+    for (const auto& candidate : candidates) {
+        message << "  - " << candidate.string() << "\n";
+    }
+    throw std::runtime_error(message.str());
 }
 
 fs::path downloadsDirectory() {

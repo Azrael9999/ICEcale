@@ -32,6 +32,11 @@ The resulting binary is available at `build/icecale`.
    ```
 2. When prompted, paste the full path to the input video.
 3. The output file is automatically written to your **Downloads** folder, named `<input_stem>_upscaled.mp4`.
+4. If the app reports a missing tool, place the binaries under one of:
+   - `bin/`
+   - `third_party/ffmpeg/` (for `ffmpeg(.exe)` and `ffprobe(.exe)`)
+   - `third_party/realesrgan-ncnn-vulkan/` (for `realesrgan-ncnn-vulkan(.exe)`, `realesrgan-x4plus.param`, `realesrgan-x4plus.bin)`)
+   - alongside the built `icecale` executable (e.g., `out/build/<config>/` when using Visual Studio)
 
 ### What the tool does
 
