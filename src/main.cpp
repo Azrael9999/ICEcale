@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <array>
 #include <chrono>
+#include <cstdlib>
 #include <cstdio>
 #include <filesystem>
 #include <fstream>
@@ -117,6 +118,26 @@ fs::path findTool(const fs::path& baseDir, const std::string& name) {
     }
 
     throw std::runtime_error("Required tool not found in project folders: " + name);
+}
+
+fs::path downloadsDirectory() {
+    const char* homeEnv = std::getenv("HOME");
+    const char* userProfileEnv = std::getenv("USERPROFILE");
+
+#ifdef _WIN32
+    fs::path base = userProfileEnv ? fs::path(userProfileEnv) : fs::current_path();
+#else
+    fs::path base = homeEnv ? fs::path(homeEnv) : fs::current_path();
+#endif
+
+    fs::path downloads = base / "Downloads";
+    std::error_code ec;
+    fs::create_directories(downloads, ec);
+    if (ec) {
+        throw std::runtime_error("Failed to create or access Downloads directory at " + downloads.string() + ": " +
+                                 ec.message());
+    }
+    return downloads;
 }
 
 void requireCommand(const fs::path& commandPath, const std::string& versionFlag = "-version") {
@@ -347,16 +368,27 @@ struct UpscaleConfig {
     fs::path realesrgan;
 };
 
-UpscaleConfig parseArgs(int argc, char** argv) {
-    if (argc < 3) {
-        throw std::runtime_error("Usage: icecale <input_video> <output_video>");
+UpscaleConfig parseArgs(int /*argc*/, char** argv) {
+    UpscaleConfig cfg;
+    cfg.execDir = executableDir(argv[0]);
+    cfg.workspace = fs::temp_directory_path() / "icecale-work";
+
+    std::cout << "Enter the path to the input video: " << std::flush;
+    std::string inputLine;
+    std::getline(std::cin, inputLine);
+    if (inputLine.empty()) {
+        throw std::runtime_error("No input path provided.");
     }
 
-    UpscaleConfig cfg;
-    cfg.input = fs::absolute(argv[1]);
-    cfg.output = fs::absolute(argv[2]);
-    cfg.workspace = fs::temp_directory_path() / "icecale-work";
-    cfg.execDir = executableDir(argv[0]);
+    cfg.input = fs::absolute(fs::path(inputLine)).lexically_normal();
+    fs::path downloads = downloadsDirectory();
+    fs::path outputName = cfg.input.stem();
+    if (outputName.empty()) {
+        outputName = "upscaled_video";
+    }
+    outputName += "_upscaled.mp4";
+    cfg.output = downloads / outputName;
+
     return cfg;
 }
 

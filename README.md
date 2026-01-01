@@ -26,9 +26,12 @@ The resulting binary is available at `build/icecale`.
 
 ## Usage
 
-```bash
-./build/icecale <input_video> <output_video>
-```
+1. Run the binary:
+   ```bash
+   ./build/icecale
+   ```
+2. When prompted, paste the full path to the input video.
+3. The output file is automatically written to your **Downloads** folder, named `<input_stem>_upscaled.mp4`.
 
 ### What the tool does
 
@@ -36,7 +39,7 @@ The resulting binary is available at `build/icecale`.
 2. Uses `ffprobe` to read the input resolution, frame rate, and estimated frame count.
 3. Extracts audio (if present) and video frames with `ffmpeg`.
 4. Upscales each frame with `realesrgan-ncnn-vulkan` using the `realesrgan-x4plus` model and shows an accurate frame-level progress indicator.
-5. Reassembles the video with `ffmpeg`, encoding with `h264_nvenc` and applying a final `scale` filter capped at 2560x1440 (aspect ratio preserved and even dimensions enforced). Audio is remuxed without re-encoding when available.
+5. Reassembles the video with `ffmpeg`, encoding with `h264_nvenc` and applying a final `scale` filter capped at 2560x1440 (aspect ratio preserved and even dimensions enforced). Audio is remuxed without re-encoding when available; the finished file is saved to your Downloads folder.
 
 The process will abort if no NVIDIA GPU is detected to guarantee GPU-accelerated execution.
 
